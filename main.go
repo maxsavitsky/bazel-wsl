@@ -1,17 +1,17 @@
 /*
-   Copyright 2021 Dmitriy Poluyanov
+Copyright 2021 Dmitriy Poluyanov
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 package main
 
@@ -29,7 +29,7 @@ import (
 
 func main() {
 	// open output file
-	var fo, err = os.OpenFile("command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	var fo, err = os.OpenFile("NUL", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -62,7 +62,9 @@ func main() {
 		if strings.HasPrefix(arg, "attr(tags") {
 			var newAttr = strings.Replace(arg, "attr(tags", "attr('tags'", 1)
 			newAttr = strings.Replace(newAttr, "^((?!manual).)*$", "'^((?!manual).)*$'", 1)
+			newAttr = "'" + newAttr + "'"
 			bazelArgs = append(bazelArgs, newAttr)
+			fo.WriteString(fmt.Sprintf("Formatted to %s", newAttr))
 		} else if strings.HasPrefix(arg, "same_pkg_direct_rdeps(") {
 			var newAttr = strings.Replace(arg, "same_pkg_direct_rdeps(", "'same_pkg_direct_rdeps(", 1)
 			newAttr = strings.ReplaceAll(newAttr, "\\", "/")
@@ -118,6 +120,7 @@ func main() {
 	if patchOutputBuffer {
 		var patchedBuffer = PatchBuffer(&outBuffer)
 		os.Stdout.Write(patchedBuffer.Bytes())
+		//fo.WriteString(fmt.Sprintf("PathBuffer: %s\nTO\n%s\n", outBuffer.String(), patchedBuffer.Bytes()))
 	}
 
 	if bepOutputPath != "" && bepIDEAOutputPath != "" {
@@ -149,7 +152,8 @@ func main() {
 	}
 
 	if cmdErr != nil {
-		fo.WriteString(fmt.Sprint(cmd))
+		fo.WriteString(fmt.Sprintf("ERROR: %s\n", cmd))
+		fo.WriteString(fmt.Sprintf("Exit with code %d\n", cmdErr.(*exec.ExitError).ExitCode()))
 		os.Exit(cmdErr.(*exec.ExitError).ExitCode())
 	}
 }

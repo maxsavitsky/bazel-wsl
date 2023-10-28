@@ -1,17 +1,17 @@
 /*
-   Copyright 2021 Dmitriy Poluyanov
+Copyright 2021 Dmitriy Poluyanov
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 package bep
 
@@ -44,6 +44,7 @@ func RewriteBep(from *os.File, to *os.File, logTo *os.File) {
 	var outBuf = proto.NewBuffer(nil)
 
 	commonHomePrefix := utils.WSLToWinPath("/home")
+	logTo.WriteString(fmt.Sprintf("commonHomePrefix: %s", commonHomePrefix))
 	for i := 0; i < len(data); {
 		var size, len = proto.DecodeVarint(data[i:])
 
@@ -56,6 +57,7 @@ func RewriteBep(from *os.File, to *os.File, logTo *os.File) {
 		}
 
 		var eventId = buildEvent.GetId().Id
+		logTo.WriteString(fmt.Sprintf("%s\n", msgData))
 		switch eventId.(type) {
 		case *buildeventstream.BuildEventId_Workspace:
 			var localExecRoot = buildEvent.GetWorkspaceInfo().GetLocalExecRoot()
@@ -74,7 +76,9 @@ func RewriteBep(from *os.File, to *os.File, logTo *os.File) {
 			for _, file := range namedSet.Files {
 				originalUri := file.GetUri()
 				var path = strings.Replace(originalUri, "file:///home", commonHomePrefix, 1)
-				path = "file://" + strings.ReplaceAll(path, "\\", "/")
+				//path = "file://" + strings.ReplaceAll(path, "\\", "/")
+				path = strings.ReplaceAll(path, "\\", "/")
+				//path = "\\wsl$\\Ubuntu" + strings.ReplaceAll(path, "\\", "/")
 				file.File = &buildeventstream.File_Uri{Uri: path}
 				logTo.WriteString(fmt.Sprintf("Replaced %s to %s\n", originalUri, path))
 				newFiles = append(newFiles, file)
