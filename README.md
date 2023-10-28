@@ -1,5 +1,11 @@
 # bazel-wsl
 
+## Замечание от Макса
+Пока что не реализованы следующие возможности:
+- Невозможно делать дебаг
+- Исходные файлы помечаются как Unsynced
+
+## Installation
 Download latest `bazel-wsl.exe` to any location and change Bazel binary location in
 (screenshots took from macos just for convenience):
 ![images/settings.png](images/settings.png)
